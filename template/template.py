@@ -3,10 +3,12 @@ def read_file(file_path):
         data = file.read()
         return data
 
-def problem_one():
+def problem_one(data):
+    #for line in data.splitlines():
     pass
 
-def problem_two():
+def problem_two(data):
+    #for line in data.splitlines():
     pass
 
 
