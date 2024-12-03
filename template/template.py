@@ -15,8 +15,8 @@ def problem_two(data):
 
 
 if __name__ == "__main__":
-    data01 = read_file("day02/1.txt")
-    data02 = read_file("day02/example.txt")
+    data01 = read_file("day01/1.txt")
+    data02 = read_file("day01/example.txt")
     start_1 = timeit.default_timer()
     answer_1 = problem_one(data01)
     print(f"Part 1: {answer_1}")
