@@ -2,20 +2,16 @@ import timeit
 import re
 
 mul_match = re.compile(r"mul\((\d{1,3},\d{1,3})\)")
-middle_match = re.compile(r"^.*?don't\(\)(.*)do\(\).*?$")
-first_dont = re.compile(r"^(.*?)don't\(\)")
-last_do = re.compile(r"do\(\)((?:(?!don't\(\)).)*)$")
+all_match = re.compile(r"(?P<first>^.*?)don't\(\)(?P<second>.*?)do\(\)(?P<third>(?:(?!don't\(\)).)*)$")
 do_match = re.compile(r"do\(\)(.*?)don't\(\)")
 
 def get_matches(data):
     matches = []
-    for part in first_dont.findall(data):
-        matches += mul_match.findall(part)
-    for part in middle_match.findall(data):
-        for match in do_match.findall(part):
-            matches += mul_match.findall(match)
-    for part in last_do.findall(data):
-        matches += mul_match.findall(part)
+    parts = all_match.search(data)
+    matches += mul_match.findall(parts.group("first"))
+    for match in do_match.findall(parts.group("second")):
+        matches += mul_match.findall(match)
+    matches += mul_match.findall(parts.group("third"))
     return matches
 
 def read_file(file_path):
