@@ -9,59 +9,25 @@ def read_file(file_path):
         return data
 
 def obstactle_moves(grid, guard, current_direction):
-    grid = add_obstacle(grid, guard[0], guard[1], directions[current_direction])
-    looping_double = []
+    history = []
     if not grid:
         return False
     while True:
         move = move_guard(guard, grid, directions[current_direction])
+        spot = guard + [current_direction]
         match move:
             case "Done":
                 return False
             case "Turn":
-                match current_direction:
-                    case 0:
-                        current_direction = 1
-                        if grid[guard[1]][guard[0]] == "^":
-                            return True
-                        if grid[guard[1]][guard[0]] in ["<", ">"]:
-                            check = guard + ["^"]
-                            if check in looping_double:
-                                return True
-                            looping_double.append(check)
-                        grid[guard[1]][guard[0]] = "^"
-                    case 1:
-                        current_direction = 2
-                        if grid[guard[1]][guard[0]] == ">":
-                            return True
-                        if grid[guard[1]][guard[0]] in ["^", "v"]:
-                            check = guard + [">"]
-                            if check in looping_double:
-                                return True
-                            looping_double.append(check)
-                        grid[guard[1]][guard[0]] = ">"
-                    case 2:
-                        current_direction = 3
-                        if grid[guard[1]][guard[0]] == "v":
-                            return True
-                        if grid[guard[1]][guard[0]] in ["<", ">"]:
-                            check = guard + ["v"]
-                            if check in looping_double:
-                                return True
-                            looping_double.append(check)
-                        grid[guard[1]][guard[0]] = "v"
-                    case 3:
-                        current_direction = 0
-                        if grid[guard[1]][guard[0]] == "<":
-                            return True
-                        if grid[guard[1]][guard[0]] in ["^", "v"]:
-                            check = guard + [">"]
-                            if check in looping_double:
-                                return True
-                            looping_double.append(check)
-                        grid[guard[1]][guard[0]] = "<"
+                if spot in history:
+                    return True
+                if current_direction == 3:
+                    current_direction = 0
+                else:
+                    current_direction += 1
             case _:
                 guard = move
+        history.append(spot)
 
 def add_obstacle(grid, x, y, direction):
     match direction:
@@ -69,22 +35,22 @@ def add_obstacle(grid, x, y, direction):
         case "up":
             if y == 0:
                 return False
-            grid[y-1][x] = "O"
+            grid[y-1][x] = "#"
         # down
         case "down":
             if y == len(grid)-1:
                 return False
-            grid[y+1][x] = "O"
+            grid[y+1][x] = "#"
         # left
         case "left":
             if x == 0:
                 return False
-            grid[y][x-1] = "O"
+            grid[y][x-1] = "#"
         # right
         case "right":
             if x == len(grid[0])-1:
                 return False
-            grid[y][x+1] = "O"
+            grid[y][x+1] = "#"
     return grid
 
 def move_guard(guard, grid, direction):
@@ -93,28 +59,28 @@ def move_guard(guard, grid, direction):
         case "up":
             if guard[1] == 0:
                 return "Done"
-            if grid[guard[1]-1][guard[0]] in ["#", "O"]:
+            if grid[guard[1]-1][guard[0]] == "#":
                 return "Turn"
             return [guard[0], guard[1]-1]
         # down
         case "down":
             if guard[1] == len(grid[1])-1:
                 return "Done"
-            if grid[guard[1]+1][guard[0]] in ["#", "O"]:
+            if grid[guard[1]+1][guard[0]] == "#":
                 return "Turn"
             return [guard[0],guard[1]+1]
         # left
         case "left":
             if guard[0] == 0:
                 return "Done"
-            if grid[guard[1]][guard[0]-1] in ["#", "O"]:
+            if grid[guard[1]][guard[0]-1] == "#":
                 return "Turn"
             return [guard[0]-1,guard[1]]
         # right
         case "right":
             if guard[0] == len(grid)-1:
                 return "Done"
-            if grid[guard[1]][guard[0]+1] in ["#", "O"]:
+            if grid[guard[1]][guard[0]+1] == "#":
                 return "Turn"
             return [guard[0]+1,guard[1]]
 
@@ -151,40 +117,38 @@ def problem_two(data):
     lines = data.splitlines()
     for line in range(len(lines)):
         lines[line] = list(lines[line])
-    total = 0
-    guard = [0,0]
+    guard = []
+    starting_position = []
+    path = []
     obstacles = []
-    checked_spots = []
     current_direction = 0
     for y in range(len(lines)):
         for x in range(len(lines[y])):
             if lines[y][x] == "^":
                 guard = [x,y]
-                lines[y][x] = "X"
+                starting_position = [x,y]
+                lines[y][x] = "."
     while True:
-        spot = guard + [current_direction]
-        if spot not in checked_spots:
-            obstacle_grid = copy.deepcopy(lines)
-            obstacle_guard = copy.deepcopy(guard)
-            obstacle_direction = copy.deepcopy(current_direction)
-            if obstactle_moves(obstacle_grid, obstacle_guard, obstacle_direction):
-                #print(f"Found loop with obstacle at {guard}")
-                obstacles.append(guard)
+        spot = guard
+        if spot not in path:
+            path.append(spot)
         move = move_guard(guard, lines, directions[current_direction])
         if move == "Done":
             break
         if move == "Turn":
-            checked_spots.append(spot)
             if current_direction == 3:
                 current_direction = 0
             else:
                 current_direction += 1
         else:
-            checked_spots.append(spot)
             guard = move
-
-    total = len(obstacles)
-    return total
+    for spot in path[1:]:
+        grid = copy.deepcopy(lines)
+        grid[spot[1]][spot[0]] = "#"
+        if obstactle_moves(grid, [starting_position[0], starting_position[1]], 0):
+            if [spot[0], spot[1]] not in obstacles:
+                obstacles.append([spot[0], spot[1]])
+    return len(obstacles)
 
 
 if __name__ == "__main__":
